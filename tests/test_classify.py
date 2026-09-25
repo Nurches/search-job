@@ -80,3 +80,24 @@ def test_budget(text, expected):
 def test_to_kzt():
     assert to_kzt(1000, "RUB", {"RUB": 6.3}) == 6300
     assert to_kzt(1000, "XXX", {"RUB": 6.3}) is None
+
+
+@pytest.mark.parametrize("title,desc", [
+    ("US RCM Sales Representative Needed", "Навыки: CRM, Sales\nCall clinics"),
+    ("Modern Luxury Logo Redesign", "Навыки: Logo Design, AI\nRedesign our logo"),
+    ("#вакансия #ассистент #удаленка", "#вакансия #ассистент #удаленка\nИщу ассистента, нужно знание нейросетей"),
+    ("[HIRING] Lifecycle & Retention Marketing Manager", "QA of email flows, $4000"),
+])
+def test_non_it_head_rejected(title, desc):
+    j = Job(source="x", source_name="x", native_id="1", title=title, url="u", description=desc)
+    assert classify.rejection_reason(j, {}) == "not_it"
+
+
+@pytest.mark.parametrize("title", [
+    "Project manager for Flutter mobile app",
+    "Разработать сайт для маркетингового агентства",
+    "Telegram bot for sales team",
+])
+def test_dev_head_kept(title):
+    j = Job(source="x", source_name="x", native_id="1", title=title, url="u", description=title)
+    assert classify.rejection_reason(j, {}) is None

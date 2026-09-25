@@ -17,6 +17,8 @@ ORDER_RE = _compile(kw.ORDER_MARKERS)
 OFFER_RE = _compile(kw.OFFER_MARKERS)
 SPAM_RE = _compile(kw.SPAM_MARKERS)
 NON_IT_RE = _compile(kw.NON_IT_MARKERS)
+NON_IT_HEAD_RE = _compile(kw.NON_IT_HEAD_MARKERS)
+DEV_HEAD_RE = _compile(kw.DEV_HEAD_MARKERS)
 BIG_RE = _compile(kw.BIG_PROJECT_MARKERS)
 SMALL_RE = _compile(kw.SMALL_TASK_MARKERS)
 URGENT_RE = _compile(kw.URGENT_MARKERS)
@@ -40,11 +42,17 @@ def rejection_reason(job: Job, source_cfg: dict) -> str | None:
     if SPAM_RE.search(t):
         return "spam"
     tags = detect_tags(job.text)
+    strong = [tg for tg in tags if tg not in kw.WEAK_TAGS]
     it_only = source_cfg.get("it_only", False)
-    if not tags and not it_only:
+    if not strong and not it_only:
         return "not_it"
     if not tags and NON_IT_RE.search(t):
         return "not_it"
+    # «Менеджер по продажам», «логотип», «#ассистент» — даже если в тексте мелькнули AI или CRM.
+    head = prepare(f"{job.title} {job.description[:200]}")
+    if NON_IT_HEAD_RE.search(head) and not DEV_HEAD_RE.search(head):
+        if not set(detect_tags(job.title)) - kw.WEAK_TAGS:
+            return "not_it"
     if source_cfg.get("check_offer", False):
         # Чаты/каналы: отсекаем рекламу исполнителей и требуем признак заказа.
         head = prepare(job.description[:400] or job.title)

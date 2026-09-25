@@ -5,11 +5,29 @@
 """
 from __future__ import annotations
 
+import re
+
 from bs4 import BeautifulSoup
 
 from .. import http
 from ..models import Job, iso, parse_iso
 from .base import Source, clean_text
+
+
+_GENERIC_RE = re.compile(r"^(нов\w+ )?(вакансия|заказ|задача|проект|работа|ищу|ищем)[\s!.:]*$", re.IGNORECASE)
+_LETTERS_RE = re.compile(r"[^\W\d_]{3,}")
+
+
+def pick_title(text: str) -> str:
+    """Первая осмысленная строка поста: без строк из одних хештегов и «Новая вакансия»."""
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    for ln in lines[:6]:
+        words = re.sub(r"#\w+", " ", ln)
+        core = _LETTERS_RE.findall(words)
+        clean = re.sub(r"^[\W_]+", "", words).strip()
+        if len(core) >= 2 and not _GENERIC_RE.match(clean):
+            return clean[:140]
+    return (lines[0] if lines else text)[:140]
 
 
 class SourceError(Exception):
@@ -69,10 +87,9 @@ class TelegramChannel(Source):
                 continue
             time_el = msg.select_one(".tgme_widget_message_date time[datetime]") or msg.select_one("time[datetime]")
             published = iso(parse_iso(time_el["datetime"])) if time_el else None
-            first_line = next((ln for ln in text.splitlines() if ln.strip()), text)
             jobs.append(self.make_job(
                 native_id=msg_id,
-                title=first_line[:140],
+                title=pick_title(text),
                 url=f"https://t.me/{post}",
                 description=text[:2500],
                 published=published,

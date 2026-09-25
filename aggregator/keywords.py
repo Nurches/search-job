@@ -115,6 +115,28 @@ NON_IT_MARKERS = [
     r"бухгалтер|юрист|менеджер по продаж",
 ]
 
+# Не-IT профессии в заголовке/начале поста. Такой заказ отбрасывается, если
+# рядом нет признаков разработки (DEV_HEAD_MARKERS) или IT-категории в заголовке.
+NON_IT_HEAD_MARKERS = [
+    r"sales|продаж|marketing|маркетолог|маркетинг", r"ассистент|assistant|помощник",
+    r"recruit|рекрутер|\bhr\b", r"\blogo|логотип|\blabel\b|этикет|баннер|banner|визитк|полиграф|упаковк",
+    r"accountant|accounts payable|бухгалтер|юрист|lawyer", r"lead ?gen|лидоген|линкбилд|link ?building",
+    r"\bsmm\b|таргет|instagram|инстаграм|tiktok|тикток|reels", r"съемк|фотограф|photograph|product photo",
+    r"мультфильм|анимаци|animation|видеомонтаж|монтаж|video edit|озвуч|voice ?over",
+    r"копирайт|copywrit|рерайт|статей|статьи|article|перевод|translat",
+    r"customer (support|success|service)|support specialist|оператор|data entry|ввод данных",
+    r"business development|бизнес[\s-]?девелоп|менеджер|manager|fulfillment|dropship",
+]
+
+DEV_HEAD_MARKERS = [
+    r"разработ|(?<!business )develop|программист|programmer|engineer|инженер", r"приложени|\bapp\b",
+    r"\bбот|bot\b", r"сайт|website|landing|лендинг", r"\bapi\b|backend|frontend|full[\s-]?stack|фулл?[\s-]?стек",
+    r"парсер|parser|scraper|скрипт|script", r"\bdev\b|devops|тестировщ|\bqa (engineer|инженер)",
+]
+
+# Теги, которые сами по себе не доказывают, что заказ про разработку.
+WEAK_TAGS = {"design"}
+
 # Признаки большого проекта "под ключ".
 BIG_PROJECT_MARKERS = [
     r"под ключ", r"с нуля", r"\bmvp\b", r"стартап|startup", r"маркетплейс|marketplace",

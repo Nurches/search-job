@@ -137,12 +137,17 @@ def run(config: dict, out_path: Path, *, notify: bool = True, only: str | None =
         enrich_budget(job, src.cfg, rates)
         existing[job.id] = job
 
-    # Чистим старое, пересчитываем оценки (свежесть меняется со временем).
+    # Чистим старое, заново фильтруем (правила могли поменяться), пересчитываем
+    # оценки (свежесть меняется со временем).
+    cfg_by_id = {s.id: s.cfg for s in build_sources(config)}
     cutoff = now - retention
     jobs = []
     for job in existing.values():
         ts = parse_iso(job.published) or parse_iso(job.first_seen) or now
         if ts < cutoff:
+            continue
+        cfg = cfg_by_id.get(job.source) or {"check_offer": job.source.startswith("tg:")}
+        if classify.rejection_reason(job, cfg):
             continue
         classify.score(job, thresholds, now)
         jobs.append(job)

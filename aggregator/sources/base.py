@@ -42,13 +42,14 @@ class Source:
 
 
 _WS_RE = re.compile(r"[ \t ]+")
+_ZW_RE = re.compile("[\u200b-\u200f\u2060\ufeff]")
 _NL_RE = re.compile(r"\n{3,}")
 
 
 def clean_text(text: str | None) -> str:
     if not text:
         return ""
-    text = html.unescape(text)
+    text = _ZW_RE.sub("", html.unescape(text))
     text = _WS_RE.sub(" ", text)
     text = "\n".join(line.strip() for line in text.splitlines())
     return _NL_RE.sub("\n\n", text).strip()

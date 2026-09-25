@@ -16,7 +16,7 @@ def test_telegram_parse():
     assert src.name == "Фриланс Заказы KZ"
     assert [j.native_id for j in jobs] == ["101", "102", "103"]  # фото без подписи пропущено
     first = jobs[0]
-    assert first.title == "#заказ Нужен Flutter разработчик"
+    assert first.title == "Нужен Flutter разработчик"  # хештеги убраны из заголовка
     assert first.url == "https://t.me/freelance_kz/101"
     assert first.published == "2026-09-25T10:00:00Z"
     assert "Бюджет 500 000 тг" in first.description
@@ -79,3 +79,10 @@ def test_freelancer_parse():
     assert j.url == "https://www.freelancer.com/projects/mobile/build-flutter-app"
     assert j.budget_value == 750 and j.responses == 12
     assert j.description.startswith("Навыки: Flutter")
+
+
+def test_telegram_title_skips_hashtags_and_generic_headers():
+    from aggregator.sources.telegram import pick_title
+    assert pick_title("​#вакансия #Nodejs\nFullstack разработчик в финтех") == "Fullstack разработчик в финтех"
+    assert pick_title("🙂 Новая вакансия\n\n📍Разработка\n\nFlutter developer") == "Flutter developer"
+    assert pick_title("Нужен бот для записи") == "Нужен бот для записи"

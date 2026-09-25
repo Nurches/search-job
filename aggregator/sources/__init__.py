@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from .base import Source
 from .freelancer import FreelancerSource
 from .hh import HeadHunterSource
@@ -21,6 +23,8 @@ def build_sources(config: dict) -> list[Source]:
     sources: list[Source] = []
     for cfg in config.get("sources", []):
         if cfg.get("enabled", True) is False:
+            continue
+        if cfg.get("requires_env") and not os.environ.get(cfg["requires_env"]):
             continue
         cls = SOURCE_TYPES[cfg["type"]]
         sources.append(cls(cfg, settings))
