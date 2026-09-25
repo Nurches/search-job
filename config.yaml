@@ -1,0 +1,163 @@
+# Конфигурация агрегатора. После правки просто закоммитьте файл —
+# GitHub Actions подхватит изменения на следующем запуске.
+
+settings:
+  retention_days: 14        # сколько дней держать заказы в ленте
+  max_items: 3000
+  request_timeout: 20
+  workers: 8                # параллельных запросов
+  notify_limit: 10          # максимум уведомлений в Telegram за один прогон
+  thresholds:               # score 0..100
+    hot: 60
+    warm: 35
+  rates_to_kzt:             # примерные курсы для сравнения бюджетов
+    KZT: 1
+    RUB: 6.3
+    USD: 520
+    EUR: 580
+    UAH: 12.5
+
+# ── Биржи и сайты ────────────────────────────────────────────────────
+# type: rss | kwork | hh | freelancer
+# it_only: true  — источник уже отфильтрован по IT, брать без проверки ключевых слов
+# currency       — валюта по умолчанию для «бюджет: 50000» без символа валюты
+sources:
+  - id: kwork
+    name: Kwork
+    type: kwork
+    category: 11            # «Разработка и IT»
+    pages: 2
+    it_only: true
+    currency: RUB
+    link: https://kwork.ru/projects?c=11
+
+  - id: habr
+    name: Хабр Фриланс
+    type: rss
+    url: https://freelance.habr.com/tasks.rss
+    link: https://freelance.habr.com/tasks
+    currency: RUB
+
+  - id: flru
+    name: FL.ru
+    type: rss
+    url: https://www.fl.ru/rss/all.xml
+    link: https://www.fl.ru/projects/
+    currency: RUB
+
+  - id: freelancehunt
+    name: Freelancehunt
+    type: rss
+    url: https://freelancehunt.com/projects.rss
+    link: https://freelancehunt.com/projects
+    currency: UAH
+
+  - id: weblancer
+    name: Weblancer
+    type: rss
+    url: https://www.weblancer.net/rss/jobs.rss
+    link: https://www.weblancer.net/jobs/
+    currency: USD
+
+  - id: hh-kz
+    name: hh.kz — IT в Казахстане
+    type: hh
+    kind: vacancy
+    currency: KZT
+    link: https://hh.kz/search/vacancy?area=40&professional_role=96
+    params:
+      area: 40              # Казахстан
+      professional_role: [96, 160, 124, 165]   # разработчик, DevOps, тестировщик, data scientist
+
+  - id: hh-project
+    name: hh — проектная работа (удалённо)
+    type: hh
+    kind: order
+    currency: RUB
+    link: https://hh.ru/search/vacancy?employment=project&professional_role=96&schedule=remote
+    params:
+      employment: project
+      schedule: remote
+      professional_role: 96
+
+  - id: freelancer
+    name: Freelancer.com
+    type: freelancer
+    limit: 100
+    link: https://www.freelancer.com/jobs
+
+  - id: reddit-forhire
+    name: Reddit r/forhire
+    type: rss
+    url: https://www.reddit.com/r/forhire/new/.rss
+    link: https://www.reddit.com/r/forhire/new/
+    title_filter: '\[hiring\]'
+    currency: USD
+
+  - id: wwr
+    name: We Work Remotely
+    type: rss
+    kind: vacancy
+    url: https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss
+    link: https://weworkremotely.com/categories/remote-full-stack-programming-jobs
+    it_only: true
+    currency: USD
+
+# ── Telegram ─────────────────────────────────────────────────────────
+# Читаются публичные каналы через https://t.me/s/<канал> (без ключей).
+# Сообщения фильтруются: реклама исполнителей («выполню», «ищу работу»),
+# спам и не-IT отбрасываются. Статус каждого канала виден на вкладке «Источники».
+# Добавляйте свои каналы и чаты, в том числе казахстанские и университетские.
+telegram:
+  currency: RUB             # валюта по умолчанию для чатов
+  pages: 1                  # страниц истории за прогон (~20 сообщений на страницу)
+  channels:
+    - freelancetaverna
+    - distantsiya
+    - remowork
+    - forfrontend
+    - python_djangojobs
+    - golang_jobs
+    - jobforjunior
+    - myjobit
+    - fordev
+    - it_vakansii_jobs
+    - devops_jobs
+    - flutter_jobs
+    - javascript_jobs
+    - react_jobs
+    - mobile_jobs
+    # Пример с настройками:
+    # - channel: some_kz_chat
+    #   name: IT чат Алматы
+    #   currency: KZT
+
+# ── Каталог площадок (вкладка «Площадки» на сайте) ───────────────────
+# auto: true — собирается автоматически; false — только ссылка (нужен вход / защита от ботов).
+directory:
+  - {name: Kwork, url: "https://kwork.ru/projects?c=11", region: СНГ, auto: true, note: "Крупнейшая биржа СНГ, много заказов на ботов, сайты и парсеры. Оплата в рублях."}
+  - {name: FL.ru, url: "https://www.fl.ru/projects/", region: СНГ, auto: true, note: "Старейшая биржа, есть крупные проекты. Часть заказов только для PRO-аккаунтов."}
+  - {name: Хабр Фриланс, url: "https://freelance.habr.com/tasks", region: СНГ, auto: true, note: "Сильная IT-аудитория, заказы на разработку и дизайн."}
+  - {name: Freelancehunt, url: "https://freelancehunt.com/projects", region: СНГ, auto: true, note: "Популярна в Украине и Казахстане, есть безопасная сделка."}
+  - {name: Weblancer, url: "https://www.weblancer.net/jobs/", region: СНГ, auto: true, note: "Веб-разработка и сайты."}
+  - {name: Freelance.ru, url: "https://freelance.ru/project/search", region: СНГ, auto: false, note: "Проекты по разработке, регистрация бесплатная."}
+  - {name: Workzilla, url: "https://work-zilla.com", region: СНГ, auto: false, note: "Небольшие быстрые задачи, удобно для старта и отзывов."}
+  - {name: YouDo, url: "https://youdo.com", region: СНГ, auto: false, note: "Раздел «Разработка ПО» и «Компьютерная помощь»."}
+  - {name: hh.kz, url: "https://hh.kz/search/vacancy?area=40&professional_role=96", region: Казахстан, auto: true, note: "Вакансии и проектная работа в Казахстане."}
+  - {name: Enbek.kz, url: "https://www.enbek.kz", region: Казахстан, auto: false, note: "Государственный портал вакансий РК."}
+  - {name: OLX.kz, url: "https://www.olx.kz/rabota/", region: Казахстан, auto: false, note: "Раздел «Работа» и «Услуги»: здесь ищут программистов и сайты местные предприниматели."}
+  - {name: Госзакупки РК, url: "https://goszakup.gov.kz", region: Казахстан, auto: false, note: "Тендеры на разработку сайтов и ПО. Нужен ИП/ТОО и ЭЦП."}
+  - {name: Freelancer.com, url: "https://www.freelancer.com/jobs", region: Мир, auto: true, note: "Международная биржа, оплата в долларах, высокая конкуренция."}
+  - {name: Upwork, url: "https://www.upwork.com/nx/find-work/", region: Мир, auto: false, note: "Главная мировая биржа. RSS-ленту закрыли в 2024, смотреть вручную или через сохранённые поиски."}
+  - {name: Fiverr, url: "https://www.fiverr.com", region: Мир, auto: false, note: "Вы выставляете услуги-«гиги», заказчики приходят сами."}
+  - {name: Contra, url: "https://contra.com", region: Мир, auto: false, note: "Без комиссии для фрилансера, много стартапов."}
+  - {name: Toptal, url: "https://www.toptal.com", region: Мир, auto: false, note: "Строгий отбор, но высокие ставки."}
+  - {name: r/forhire, url: "https://www.reddit.com/r/forhire/new/", region: Мир, auto: true, note: "Посты с [Hiring] на английском."}
+  - {name: We Work Remotely, url: "https://weworkremotely.com", region: Мир, auto: true, note: "Удалённые вакансии full-stack."}
+  - {name: Djinni, url: "https://djinni.co/jobs/", region: Мир, auto: false, note: "Удалённые IT-вакансии, работодатели сами пишут кандидатам."}
+  - {name: Хабр Карьера, url: "https://career.habr.com/vacancies?type=all&remote=true", region: СНГ, auto: false, note: "IT-вакансии, фильтр «удалённо»."}
+  - {name: Автор24, url: "https://avtor24.ru", region: Учёба, auto: false, note: "Студенческие заказы: курсовые и лабораторные по программированию."}
+  - {name: Studwork, url: "https://studwork.ru", region: Учёба, auto: false, note: "Учебные задачи по программированию и информатике."}
+  - {name: Profi.ru, url: "https://profi.ru", region: Учёба, auto: false, note: "Репетиторство по программированию, в том числе онлайн."}
+  - {name: Preply, url: "https://preply.com", region: Учёба, auto: false, note: "Онлайн-репетиторство, можно преподавать программирование."}
+  - {name: Telegram-каналы, url: "https://t.me/s/freelancetaverna", region: Telegram, auto: true, note: "Каналы из config.yaml, статусы на вкладке «Источники»."}
