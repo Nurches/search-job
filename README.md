@@ -47,7 +47,7 @@ Profi.ru, Автор24, Studwork, Enbek.kz, OLX.kz, Госзакупки и др
 
 1. **Сделайте репозиторий публичным** (Settings → General → Danger Zone). GitHub Pages
    для приватных репозиториев доступен только на платном тарифе.
-2. Убедитесь, что код лежит в ветке по умолчанию: расписание запускается только там.
+2. Убедитесь, что код лежит в ветке по умолчанию (Settings → General → Default branch): расписание запускается только там.
 3. **Actions → «Сбор заказов» → Run workflow**. Первый запуск создаст ветку `gh-pages`.
 4. **Settings → Pages → Build and deployment → Deploy from a branch → `gh-pages` / `(root)`**.
    Через минуту сайт будет доступен по адресу `https://<логин>.github.io/<репозиторий>/`.

@@ -5,7 +5,6 @@ on:
     - cron: "*/20 * * * *"   # каждые 20 минут (GitHub может задерживать запуск)
   workflow_dispatch:
   push:
-    branches: [main]
     paths: ["aggregator/**", "site/**", "config.yaml", ".github/workflows/aggregate.yml"]
 
 permissions:
