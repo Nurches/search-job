@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Радар IT-заказов</title>
+  <meta name="description" content="Свежие IT-заказы с бирж и Telegram-каналов в одной ленте: горячие, тёплые, холодные.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📡</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">📡</span>
+        <div>
+          <h1>Радар IT-заказов</h1>
+          <p class="sub" id="updated">загрузка…</p>
+        </div>
+      </div>
+      <nav class="tabs" role="tablist">
+        <button role="tab" data-tab="feed" class="active">Лента</button>
+        <button role="tab" data-tab="directory">Площадки</button>
+        <button role="tab" data-tab="sources">Источники</button>
+        <button role="tab" data-tab="about">Как работает</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="demo-banner" class="banner" hidden>
+      Это демо-данные. Настоящая лента появится после первого запуска GitHub Actions (см. README).
+    </div>
+
+    <!-- ЛЕНТА -->
+    <section id="tab-feed" class="tab-panel">
+      <div class="stats" id="stats">
+        <button class="stat" data-temp="hot"><span class="stat-n" id="n-hot">0</span><span class="stat-l">🔥 Горячие</span></button>
+        <button class="stat" data-temp="warm"><span class="stat-n" id="n-warm">0</span><span class="stat-l">🟡 Тёплые</span></button>
+        <button class="stat" data-temp="cold"><span class="stat-n" id="n-cold">0</span><span class="stat-l">❄️ Холодные</span></button>
+        <button class="stat" data-temp="new"><span class="stat-n" id="n-new">0</span><span class="stat-l">✨ Новые с прошлого визита</span></button>
+      </div>
+
+      <div class="filters">
+        <input id="q" type="search" placeholder="Поиск: flutter, бот, fastapi, алматы…" autocomplete="off">
+        <div class="filter-row">
+          <label>Тип
+            <select id="kind">
+              <option value="all">Все</option>
+              <option value="order">Заказы</option>
+              <option value="vacancy">Вакансии</option>
+            </select>
+          </label>
+          <label>Сортировка
+            <select id="sort">
+              <option value="score">Сначала горячие</option>
+              <option value="date">Сначала новые</option>
+              <option value="budget">По бюджету</option>
+            </select>
+          </label>
+          <label>Бюджет от, ₸
+            <input id="minBudget" type="number" min="0" step="10000" placeholder="0">
+          </label>
+          <details class="dropdown" id="sourceFilter">
+            <summary>Источники <span id="srcCount"></span></summary>
+            <div class="dropdown-body">
+              <div class="dropdown-actions">
+                <button type="button" data-src-all="1">Все</button>
+                <button type="button" data-src-all="0">Ни одного</button>
+              </div>
+              <div id="srcList"></div>
+            </div>
+          </details>
+        </div>
+        <div class="chips" id="tagChips"></div>
+        <div class="filter-row toggles">
+          <label class="toggle"><input type="checkbox" id="hideSeen" checked> Скрывать скрытые и «откликнулся»</label>
+          <label class="toggle"><input type="checkbox" id="favOnly"> Только избранное</label>
+          <label class="toggle"><input type="checkbox" id="budgetOnly"> Только с бюджетом</label>
+          <button type="button" class="link-btn" id="resetFilters">Сбросить фильтры</button>
+        </div>
+      </div>
+
+      <p class="result-count" id="resultCount"></p>
+      <div id="list" class="list"></div>
+      <button id="more" class="more" hidden>Показать ещё</button>
+    </section>
+
+    <!-- ПЛОЩАДКИ -->
+    <section id="tab-directory" class="tab-panel" hidden>
+      <p class="lead">Где искать IT-заказы из Казахстана. Площадки с меткой <span class="badge auto">авто</span> собираются в ленту автоматически. Остальные проверяйте вручную: на них нужен вход или стоит защита от ботов.</p>
+      <div id="directory"></div>
+    </section>
+
+    <!-- ИСТОЧНИКИ -->
+    <section id="tab-sources" class="tab-panel" hidden>
+      <p class="lead">Состояние источников на последнем прогоне. «Всего» — сколько записей получено, «IT» — сколько прошло фильтр. Если канал выдаёт ошибку, уберите его из <code>config.yaml</code> или замените другим.</p>
+      <div class="table-wrap">
+        <table class="sources">
+          <thead><tr><th>Источник</th><th>Статус</th><th class="num">Всего</th><th class="num">IT</th><th>Последний успех</th></tr></thead>
+          <tbody id="sourcesBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- КАК РАБОТАЕТ -->
+    <section id="tab-about" class="tab-panel about" hidden>
+      <h2>Как это работает</h2>
+      <ol>
+        <li><b>Сбор.</b> Каждые 20 минут GitHub Actions опрашивает биржи (RSS и API) и публичные Telegram-каналы.</li>
+        <li><b>Фильтр.</b> Отбрасываются спам, не-IT задачи и реклама исполнителей («выполню», «ищу работу»). Из Telegram берутся только сообщения, похожие на заказ.</li>
+        <li><b>Дубли.</b> Одинаковые заказы, опубликованные в нескольких местах, склеиваются в один.</li>
+        <li><b>Оценка 0–100.</b> Баллы начисляются за свежесть, бюджет (переводится в ₸), проект «под ключ» (приложение, MVP, платформа), веб и мобильный стек, срочность, малое число откликов, упоминание Казахстана и контакт в посте. Мелкие правки и большая конкуренция снижают оценку.</li>
+      </ol>
+      <p><span class="temp hot">🔥 горячий</span> — <span id="thHot">60</span>+ баллов: откликаться сразу.
+         <span class="temp warm">🟡 тёплый</span> — <span id="thWarm">35</span>+: стоит посмотреть.
+         <span class="temp cold">❄️ холодный</span> — остальное.</p>
+      <p>Кнопки ⭐ ✓ ✕ на карточках сохраняются только в этом браузере.</p>
+      <p>Горячие заказы можно получать в Telegram-бот, настройка описана в README.</p>
+    </section>
+  </main>
+
+  <template id="card-tpl">
+    <article class="card">
+      <div class="card-head">
+        <span class="temp"></span>
+        <span class="score" title="Оценка"></span>
+        <span class="new-badge" hidden>NEW</span>
+        <span class="kind"></span>
+        <span class="spacer"></span>
+        <div class="actions">
+          <button class="act fav" title="В избранное">☆</button>
+          <button class="act applied" title="Откликнулся">✓</button>
+          <button class="act hide" title="Скрыть">✕</button>
+        </div>
+      </div>
+      <h3 class="title"><a target="_blank" rel="noopener"></a></h3>
+      <div class="meta"></div>
+      <p class="desc"></p>
+      <button class="expand link-btn" hidden>Показать полностью</button>
+      <div class="card-foot">
+        <div class="tags"></div>
+        <div class="reasons"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
